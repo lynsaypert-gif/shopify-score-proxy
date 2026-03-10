@@ -4,7 +4,7 @@
 export default async function handler(req, res) {
   // Allow requests from your Framer site (replace with your actual domain)
   const allowedOrigins = [
-    'https://your-site.framer.app',   // ← replace with your Framer URL
+    'https://cuddly-tournaments-786247.framer.app',   // ← replace with your Framer URL
     'https://yourdomain.com',          // ← replace with your custom domain (if any)
     'http://localhost:3000',           // for local testing
   ];
