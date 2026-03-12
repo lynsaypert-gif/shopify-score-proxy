@@ -2,8 +2,11 @@ const SHEET_ID = '1MGLw96Vjcjd0I53ZspJKjqBqlhAre1P0LqvAAs5ANQI';
 const SHEET_RANGE = 'Sheet1!A:E';
 
 async function getAccessToken() {
-  const key = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+  const rawKey = process.env.GOOGLE_PRIVATE_KEY || '';
+  const key = rawKey.replace(/\\n/g, '\n');
   const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+
+  if (!key || !clientEmail) throw new Error('Missing GOOGLE_PRIVATE_KEY or GOOGLE_CLIENT_EMAIL');
 
   const header = { alg: 'RS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
@@ -18,8 +21,8 @@ async function getAccessToken() {
   const encode = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64url');
   const signingInput = `${encode(header)}.${encode(claim)}`;
 
-  const crypto = await import('crypto');
-  const sign = crypto.createSign('RSA-SHA256');
+  const { createSign } = await import('crypto');
+  const sign = createSign('RSA-SHA256');
   sign.update(signingInput);
   const signature = sign.sign(key, 'base64url');
   const jwt = `${signingInput}.${signature}`;
@@ -34,6 +37,7 @@ async function getAccessToken() {
   });
 
   const tokenData = await tokenRes.json();
+  if (!tokenData.access_token) throw new Error('Token error: ' + JSON.stringify(tokenData));
   return tokenData.access_token;
 }
 
@@ -68,6 +72,7 @@ export default async function handler(req, res) {
     if (data.error) return res.status(400).json({ error: data.error.message });
     res.status(200).json({ success: true });
   } catch (e) {
+    console.error('save-lead error:', e.message);
     res.status(500).json({ error: e.message });
   }
 }
